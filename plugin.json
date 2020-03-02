@@ -1,0 +1,14 @@
+{
+  "pluginName": "QuickJet",
+  "description": "快速打开Jetbrains IDE的最近项目",
+  "preload": "index.js",
+  "platform": ["win32"],
+  "author": "Twiliness",
+  "logo": "app.png",
+  "version": "0.0.1",
+  "features": [{
+    "code": "QuickJet",
+    "explain": "快速打开Jetbrains IDE中最近的文件或文件夹",
+    "cmds": ["quickjet","qjet", "jet"]
+  }]
+}
