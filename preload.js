@@ -10,8 +10,15 @@ function getUserHome() {
 }
 
 async function getToolboxAppPath() {
+    let toolbox = "";
+    if (window.utools.isWindows()) {
+        toolbox = "/AppData/Local/JetBrains/Toolbox";
+    }
+    else if  (window.utools.isMacOs()) {
+        toolbox = "/Library/Application Support/JetBrains/Toolbox";
+    }
+
     const userHome = getUserHome();
-    const toolbox = "/AppData/Local/JetBrains/Toolbox";
     const app = "/apps";
 
     const fullPath = path.join(userHome, toolbox, app);
@@ -67,12 +74,23 @@ async function getAppInfoByPath(appPath) {
     }
 
     const history = await fp.readFile(historyPath, {encoding: "utf-8"});
-    const json = JSON.parse(history)["history"][0]["item"];
+    const histories = JSON.parse(history)["history"]
+    const json = histories[histories.length - 1]["item"]
 
+    let command = ""
+    let binPath = ""
+    if (window.utools.isWindows()) {
+        command  = json["package"]["command"]
+        binPath = "bin"
+    }
+    else if (window.utools.isMacOs()) {
+        command = 'Contents/MacOS/' + json["intellij_platform"]["shell_script_name"]
+        binPath = "Contents/bin"
+    }
     const result = {
         "app-name": json["name"],
-        "app-path": path.join(json["system-app-path"], json["package"]["command"]),
-        "app-icon-path": path.join(json["system-app-path"], "bin", json["intellij_platform"]["shell_script_name"] + '.svg'),
+        "app-path": path.join(json["system-app-path"], command),
+        "app-icon-path": path.join(json["system-app-path"], binPath, json["intellij_platform"]["shell_script_name"] + '.svg'),
         "recent-path": path.join(json["intellij_platform"]["default_config_directories"]["idea.config.path"].replace("$HOME", getUserHome()), "options")
     };
 
@@ -117,7 +135,7 @@ async function parseRecentXml(xml) {
     const projects = [];
 
     for (const o of entry) {
-        const fullPath = o["$"]["key"];
+        const fullPath = o["$"]["key"].replace("$USER_HOME$", getUserHome());
         const timestamp = o["value"][0]["RecentProjectMetaInfo"][0]["option"][4]["$"]["value"];
         const stats = path.parse(fullPath);
 
