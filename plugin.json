@@ -2,7 +2,7 @@
   "pluginName": "QuickJet",
   "description": "快速打开Jetbrains IDE的最近项目",
   "preload": "preload.js",
-  "platform": ["win32"],
+  "platform": ["win32","darwin"],
   "author": "Twiliness",
   "logo": "app.png",
   "version": "0.0.2",
