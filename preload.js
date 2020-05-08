@@ -9,20 +9,39 @@ function getUserHome() {
     return process.env.HOME || process.env.USERPROFILE;
 }
 
+function getUserAppData(){
+    return process.env.APPDATA
+}
+
+function getUserLocalAppData(){
+    return process.env.LOCALAPPDATA
+}
+
 async function getToolboxAppPath() {
+    let toolbox = "";
+
+    if (typeof window == "undefined" || window.utools.isWindows()) {
+        toolbox = "/AppData/Local/JetBrains/Toolbox";
+    }
+    else if  (window.utools.isMacOs()) {
+        toolbox = "/Library/Application Support/JetBrains/Toolbox";
+    }
+
     const userHome = getUserHome();
-    const toolbox = "/AppData/Local/JetBrains/Toolbox";
     const app = "/apps";
 
     const fullPath = path.join(userHome, toolbox, app);
+
     console.log("Jetbrains Toolbox下的Apps文件夹路径:", fullPath);
 
     if (fs.existsSync(fullPath)) {
         console.log("确定Jetbrains Toolbox下的Apps文件夹存在.");
+
         return Promise.resolve(fullPath);
     }
 
     console.error("无法在Jetbrains的默认路径找到App文件夹.");
+
     return Promise.reject("无法在Jetbrains的默认路径找到App文件夹.")
 }
 
@@ -30,7 +49,9 @@ async function getInstalledApps() {
     try {
         const appPath = await getToolboxAppPath();
         const files = await fp.readdir(appPath);
+
         console.log("路径下所有文件:", files);
+
         const result = files
             .filter(file => {
                 const fullPath = path.join(appPath, file);
@@ -43,9 +64,13 @@ async function getInstalledApps() {
                     "full-path": path.join(appPath, dir, "ch-0")
                 }
             });
+
         console.log("具体安装路径:", result);
+
         return Promise.resolve(result);
+
     } catch (error) {
+
         if (typeof window != "undefined" && window.hasOwnProperty("utools")) {
             window.utools.showNotification(
                 "无法在Jetbrains的默认路径找到App文件夹?确认是采用默认安装吗?",
@@ -67,13 +92,26 @@ async function getAppInfoByPath(appPath) {
     }
 
     const history = await fp.readFile(historyPath, {encoding: "utf-8"});
-    const json = JSON.parse(history)["history"][0]["item"];
+    const histories = JSON.parse(history)["history"]
+    const json = histories[histories.length - 1]["item"]
+
+    let command = ""
+    let binPath = ""
+
+    if (typeof window == "undefined" || window.utools.isWindows()) {
+        command  = json["package"]["command"]
+        binPath = "bin"
+    }
+    else if (window.utools.isMacOs()) {
+        command = 'Contents/MacOS/' + json["intellij_platform"]["shell_script_name"]
+        binPath = "Contents/bin"
+    }
 
     const result = {
         "app-name": json["name"],
-        "app-path": path.join(json["system-app-path"], json["package"]["command"]),
-        "app-icon-path": path.join(json["system-app-path"], "bin", json["intellij_platform"]["shell_script_name"] + '.svg'),
-        "recent-path": path.join(json["intellij_platform"]["default_config_directories"]["idea.config.path"].replace("$HOME", getUserHome()), "options")
+        "app-path": path.join(json["system-app-path"], command),
+        "app-icon-path": path.join(json["system-app-path"], binPath, json["intellij_platform"]["shell_script_name"] + '.svg'),
+        "recent-path": path.join(json["intellij_platform"]["default_config_directories"]["idea.config.path"].replace("$APPDATA", getUserAppData()), "options")
     };
 
     if (fs.existsSync(path.join(result["recent-path"], "recentProjectDirectories.xml"))) {
@@ -117,7 +155,7 @@ async function parseRecentXml(xml) {
     const projects = [];
 
     for (const o of entry) {
-        const fullPath = o["$"]["key"];
+        const fullPath = o["$"]["key"].replace("$USER_HOME$", getUserHome());
         const timestamp = o["value"][0]["RecentProjectMetaInfo"][0]["option"][4]["$"]["value"];
         const stats = path.parse(fullPath);
 
@@ -228,20 +266,27 @@ async function execute(data) {
     return Promise.resolve();
 }
 
-window.exports = {
-    QuickJet: {
-        mode: "list",
-        args: {
-            enter: (action, callbackSetList) => {
-                get(callbackSetList);
-            },
-            search: (action, searchWord, callbackSetList) => {
-                search(searchWord, callbackSetList);
-            },
-            select: (action, itemData, callbackSetList) => {
-                execute(itemData)
-            },
-            placeholder: ""
+if(typeof window != "undefined"){
+    window.exports = {
+        QuickJet: {
+            mode: "list",
+            args: {
+                enter: (action, callbackSetList) => {
+                    get(callbackSetList);
+                },
+                search: (action, searchWord, callbackSetList) => {
+                    search(searchWord, callbackSetList);
+                },
+                select: (action, itemData, callbackSetList) => {
+                    execute(itemData)
+                },
+                placeholder: ""
+            }
         }
-    }
-};
+    };
+}
+
+(async () => {
+    await get((v) => {
+    })
+})()
