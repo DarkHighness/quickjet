@@ -5,7 +5,7 @@
   "platform": ["win32"],
   "author": "Twiliness",
   "logo": "app.png",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "features": [{
     "code": "QuickJet",
     "explain": "快速打开Jetbrains IDE中最近的文件或文件夹",

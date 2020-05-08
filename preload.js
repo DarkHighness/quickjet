@@ -67,7 +67,9 @@ async function getAppInfoByPath(appPath) {
     }
 
     const history = await fp.readFile(historyPath, {encoding: "utf-8"});
-    const json = JSON.parse(history)["history"][0]["item"];
+    const historyJson = JSON.parse(history)["history"];
+
+    const json = historyJson[historyJson.length - 1]["item"];
 
     const result = {
         "app-name": json["name"],
@@ -228,20 +230,24 @@ async function execute(data) {
     return Promise.resolve();
 }
 
-window.exports = {
-    QuickJet: {
-        mode: "list",
-        args: {
-            enter: (action, callbackSetList) => {
-                get(callbackSetList);
-            },
-            search: (action, searchWord, callbackSetList) => {
-                search(searchWord, callbackSetList);
-            },
-            select: (action, itemData, callbackSetList) => {
-                execute(itemData)
-            },
-            placeholder: ""
+get(null);
+
+if(typeof window != "undefined"){
+    window.exports = {
+        QuickJet: {
+            mode: "list",
+            args: {
+                enter: (action, callbackSetList) => {
+                    get(callbackSetList);
+                },
+                search: (action, searchWord, callbackSetList) => {
+                    search(searchWord, callbackSetList);
+                },
+                select: (action, itemData, callbackSetList) => {
+                    execute(itemData)
+                },
+                placeholder: ""
+            }
         }
-    }
-};
+    };
+}
