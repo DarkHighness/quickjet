@@ -111,7 +111,8 @@ async function getAppInfoByPath(appPath) {
         "app-name": json["name"],
         "app-path": path.join(json["system-app-path"], command),
         "app-icon-path": path.join(json["system-app-path"], binPath, json["intellij_platform"]["shell_script_name"] + '.svg'),
-        "recent-path": path.join(json["intellij_platform"]["default_config_directories"]["idea.config.path"].replace("$APPDATA", getUserAppData()), "options")
+        "recent-path": path.join(json["intellij_platform"]["default_config_directories"]["idea.config.path"].replace(
+            "$APPDATA", getUserAppData()).replace("$HOME", getUserHome()), "options")
     };
 
     if (fs.existsSync(path.join(result["recent-path"], "recentProjectDirectories.xml"))) {
