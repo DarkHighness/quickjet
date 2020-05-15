@@ -286,8 +286,3 @@ if(typeof window != "undefined"){
         }
     };
 }
-
-(async () => {
-    await get((v) => {
-    })
-})()
