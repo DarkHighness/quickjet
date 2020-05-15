@@ -1,6 +1,11 @@
 # Jetbrains Ide 最近项目快速启动工具
 
+## 更新日志 0.0.4
+
+* 修复了MacOS的支持
+
 ## 更新日志 0.0.3
+
    * 加入Mac OS支持 来自Github ID: @zhyipeng
    * 修复ToolBox更新后,由于配置文件位置移动导致Windows下失效的问题
 
